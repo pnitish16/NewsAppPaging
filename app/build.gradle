@@ -1,6 +1,24 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'kotlin-android'
+    id 'kotlin-parcelize'
+    id 'kotlin-kapt'
+}
+
+def getLocalProperties(String key) {
+    Properties properties = new Properties()
+    File file = project.rootProject.file('local.properties')
+    if (file.exists()) {
+        properties.load(file.newDataInputStream())
+        return properties.getProperty(key)
+    } else {
+        return ""
+    }
+}
+
+def getSystemOrLocalProperty(String propertyKey, String defaultLocalPropertyKey = "") {
+    return System.getenv(propertyKey) ?: getLocalProperties(defaultLocalPropertyKey == "" ? propertyKey : defaultLocalPropertyKey)
 }
 
 android {
@@ -22,7 +40,17 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+
+        buildTypes.each {
+            it.buildConfigField 'String', 'API_KEY', getSystemOrLocalProperty("NEWS_API_KEY")
+        }
     }
+
+    buildFeatures {
+        dataBinding true
+        viewBinding true
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -34,10 +62,52 @@ android {
 
 dependencies {
 
+    ext {
+        koin_android_version = "3.3.2"
+        gson_version = "2.9.1"
+        paging_version = '3.1.1'
+    }
+
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.8.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+
+
+    //retrofit libraries
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation "com.squareup.retrofit2:converter-moshi:2.7.1"
+    implementation 'com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.9'
+    implementation "com.squareup.moshi:moshi:1.9.2"
+    implementation "com.squareup.moshi:moshi-kotlin:1.9.2"
+
+    //koin libraries
+    implementation "io.insert-koin:koin-android:$koin_android_version"
+
+    //coroutines
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.5.1"
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.5.1'
+
+
+    //picasso
+    implementation "com.squareup.picasso:picasso:2.71828"
+
+    //room
+    implementation "androidx.room:room-runtime:2.4.3"
+    kapt "androidx.room:room-compiler:2.4.3"
+    implementation "androidx.room:room-ktx:2.4.3"
+    implementation "androidx.room:room-paging:2.4.3"
+
+    //GSON
+    implementation "com.google.code.gson:gson:$gson_version"
+
+    //Paging 3
+    implementation "androidx.paging:paging-runtime:$paging_version"
+
+    //test libraries
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'

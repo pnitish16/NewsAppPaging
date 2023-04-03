@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">NewsAppPaging</string>
+    <string name="error_message">No Data found</string>
 </resources>
